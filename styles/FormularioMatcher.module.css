@@ -1,0 +1,73 @@
+.formulario {
+    padding: 1rem;
+    max-width: 800px;
+    margin: auto;
+}
+
+.selectorCanales {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.selectorCanal {
+    cursor: pointer;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 2rem 1rem;
+    background: #1e1e1e;
+    color: #fff;
+    text-align: center;
+    transition: 0.2s;
+    opacity: 0.8;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 140px;
+}
+
+.selectorCanal.activo {
+    border: 2px solid #00c853;
+    opacity: 1;
+}
+
+.selectorCanal img {
+    max-height: 40px;
+    max-width: 100%;
+    margin-bottom: 12px;
+    object-fit: contain;
+}
+
+.campoInput {
+    display: block;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    width: 100%;
+}
+
+.botonSubmit {
+    margin-top: 24px;
+    background-color: #5d0cff; /* Color púrpura fuerte */
+    color: #ffffff;
+    font-weight: bold;
+    padding: 12px 28px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    display: inline-block;
+    text-align: center;
+}
+
+.botonSubmit:hover {
+    background-color: #4b0ac9;
+    transform: scale(1.03);
+}
+
+.botonSubmit:active {
+    background-color: #3e089e;
+    transform: scale(0.97);
+}
