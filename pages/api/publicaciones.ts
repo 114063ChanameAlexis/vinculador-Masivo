@@ -7,7 +7,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const { canal, ...data } = req.body;
-    console.log('Datos recibidos en API:', { canal, ...data });
 
     if (!canal) {
         return res.status(400).json({ error: 'Canal requerido' });

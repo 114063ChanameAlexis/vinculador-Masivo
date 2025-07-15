@@ -47,10 +47,10 @@ export class MercadoLibreStrategy implements CanalStrategy {
             }
         }
 
-        // Primero obtenemos las publicaciones activas
+
         await obtenerPorEstado('active');
 
-        // Después obtenemos las publicaciones pausadas
+
         await obtenerPorEstado('paused');
 
         console.log(`✅ Paginación completa. Total productos: ${allResults.length}`);
@@ -62,3 +62,4 @@ export class MercadoLibreStrategy implements CanalStrategy {
         }));
     }
 }
+//TODO: Validar el error de mercadolibre al momento de traer todas las publicaciones.

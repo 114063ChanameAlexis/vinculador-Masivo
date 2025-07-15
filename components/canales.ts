@@ -10,10 +10,9 @@ export const canales = [
 export const camposPorCanal: Record<string, Array<{ name: string; placeholder: string }>> = {
     mercadolibre: [
         { name: "token", placeholder: "Token de acceso" },
-        { name: "user_id", placeholder: "User ID" },
     ],
     shopify: [
-        { name: "apiKey", placeholder: "API Key" },
+        { name: "apiKey", placeholder: "API Token" },
         { name: "shopUrl", placeholder: "Shop URL" },
     ],
     woocommerce: [
@@ -26,12 +25,14 @@ export const camposPorCanal: Record<string, Array<{ name: string; placeholder: s
         { name: "tienda_id", placeholder: "User ID" },
     ],
     prestashop: [
-        { name: "apiKey", placeholder: "API Key" },
-        { name: "storeUrl", placeholder: "URL de la tienda" },
+        { name: "api_key", placeholder: "API Key" },
+        { name: "prestashop_url", placeholder: "URL de la tienda" },
+        { name: "site_protocol", placeholder: "https o http" },
     ],
     vtex: [
-        { name: "appKey", placeholder: "App Key" },
-        { name: "appToken", placeholder: "App Token" },
-        { name: "accountName", placeholder: "Account Name" },
+        { name: "api_key", placeholder: "App Key" },
+        { name: "api_token", placeholder: "App Token" },
+        { name: "api_url", placeholder: "URL de la tienda, limpia. Por ejemplo: salondepeinador" },
     ],
+
 };

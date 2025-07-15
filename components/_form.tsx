@@ -6,24 +6,22 @@ import styles from '../styles/FormularioMatcher.module.css';
 const FormularioMatcher = () => {
     const [canal, setCanal] = useState('');
     const [formData, setFormData] = useState<Record<string, string>>({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const router = useRouter();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Validar canal seleccionado
         if (!canal) {
             alert('Selecciona un canal.');
             return;
         }
 
-        // Validar campos obligatorios
         const camposRequeridos = camposPorCanal[canal] || [];
-
         for (const campo of camposRequeridos) {
             const valor = formData[campo.name]?.trim();
             if (!valor) {
@@ -32,16 +30,36 @@ const FormularioMatcher = () => {
             }
         }
 
-        // Guardar datos en sessionStorage
+        // Evitar múltiples envíos
+        setIsSubmitting(true);
+
+        // 🔐 Validar credenciales con tu backend
+        const res = await fetch('/api/validar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ canal, ...formData }),
+        });
+
+        const result = await res.json();
+
+        if (!result.valido) {
+            alert(`❌ Error: ${result.mensaje}`);
+            setIsSubmitting(false);
+            return;
+        }
+
+        alert(`✅ Canal conectado: ${result.datos?.nickname || result.datos?.name || 'OK'}`);
+
         sessionStorage.setItem('canal', canal);
         sessionStorage.setItem('formData', JSON.stringify(formData));
 
-        const canalesPublicaciones = ['mercadolibre', 'shopify'];
+        const canalesPublicaciones = ['tiendanube', 'shopify'];
         const destino = canalesPublicaciones.includes(canal)
             ? '/publicaciones'
             : '/consultas';
 
-        router.push(destino);
+        // Esperar redirección para evitar doble click
+        await router.push(destino);
     };
 
     return (
@@ -76,8 +94,12 @@ const FormularioMatcher = () => {
                     />
                 ))}
 
-            <button type="submit" className={styles.botonSubmit}>
-                Obtener | Descargar publicaciones
+            <button
+                type="submit"
+                className={styles.botonSubmit}
+                disabled={isSubmitting}
+            >
+                {isSubmitting ? 'Procesando...' : 'Obtener publicaciones'}
             </button>
         </form>
     );
