@@ -14,7 +14,7 @@ Desarrollada con **Next.js**, **TypeScript** y **Material UI**, ofrece una exper
 - **React** – Librería para construir interfaces de usuario
 - **Material UI (MUI)** – Componentes visuales preconstruidos
 - **Material React Table** – Tablas dinámicas y personalizables
-- **PapaParse / xlsx** – Importación y exportación de datos CSV/XLSX
+- **PapaParse** – Importación y exportación de datos CSV
 - **FileSaver** – Descarga de archivos desde el navegador
 
 ---

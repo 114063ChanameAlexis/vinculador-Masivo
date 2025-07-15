@@ -98,7 +98,7 @@ const ConsultasPage = () => {
                 sx={{ mb: 3, py: 2, px: 4 }}
             >
                 Seleccionar archivo CSV
-                <input type="file" hidden accept=".csv,.xlsx" onChange={handleArchivo} />
+                <input type="file" hidden accept=".csv" onChange={handleArchivo} />
             </Button>
 
             {ids.length > 0 && (
