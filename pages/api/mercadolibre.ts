@@ -101,7 +101,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             title: item.title,
             sku: hasVariants
                 ? undefined
-                : normalizeSKU(item.seller_custom_field, getSKUFromAttributes(item.attributes)),
+                : normalizeSKU(getSKUFromAttributes(item.attributes)),
             variants,
         };
 
