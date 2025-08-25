@@ -1,7 +1,7 @@
 # **mi-vinculador-web**
 
 **Vinculador de productos entre plataformas de e-commerce**  
-Aplicación web que permite conectar, comparar y emparejar productos de distintas plataformas como **Tiendanube**, **Shopify**, **WooCommerce**, **VTEX**, entre otras. Facilita la gestión centralizada del inventario y publicaciones.
+Aplicación web que permite conectar, comparar y emparejar productos de distintas plataformas como **Tiendanube**, **Shopify**, **WooCommerce**, **VTEX**, **Mercadolibre**, **Prestashop**.
 
 Desarrollada con **Next.js**, **TypeScript** y **Material UI**, ofrece una experiencia moderna, clara y funcional para tareas de integración de productos.
 
