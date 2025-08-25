@@ -180,7 +180,7 @@ const CSVComparador: React.FC<Props> = ({ publicaciones, serviceId, isServiceIdV
 
     return (
         <Box sx={{ mt: 4 }}>
-            <Button variant="contained" component="label" disabled={!isServiceIdValid}>
+            <Button variant="contained" component="label" disabled={!isServiceIdValid} >
                 Subir CSV
                 <input type="file" hidden accept=".csv" onChange={handleCSVUpload} />
             </Button>

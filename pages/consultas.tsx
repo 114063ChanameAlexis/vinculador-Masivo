@@ -61,7 +61,7 @@ const ConsultasPage = () => {
     return (
         <Box
             sx={{
-                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
                 borderRadius: 4,
                 p: 4,
                 maxWidth: 1000,
@@ -159,7 +159,7 @@ const ConsultasPage = () => {
                                 p: 2,
                                 border: '1px solid #ccc',
                                 borderRadius: '4px',
-                                backgroundColor: '#fafafa',
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
                             }}
                         >
                             <Typography><strong>🆔 ID:</strong> {pub.id}</Typography>
@@ -194,8 +194,18 @@ const ConsultasPage = () => {
                         onChange={(e) => setServiceId(e.target.value)}
                         helperText="Ingresá el ID del servicio del cliente para la comparación"
                         fullWidth
-                        sx={{ mb: 3 }}
+                        sx={{
+                            input: { color: '#fff' }, // texto dentro del input
+                            label: { color: '#fff' }, // label
+                            '& .MuiFormHelperText-root': { color: '#ccc' }, // helper text
+                            '& .MuiOutlinedInput-root': {
+                                '& fieldset': { borderColor: '#fff' },
+                                '&:hover fieldset': { borderColor: '#90caf9' },
+                                '&.Mui-focused fieldset': { borderColor: '#1976d2' },
+                            },
+                        }}
                     />
+
                     <CSVComparador
                         publicaciones={publicaciones}
                         serviceId={serviceId}
