@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import Papa from 'papaparse';
-import { Box, Button, Typography } from '@mui/material';
-import { MaterialReactTable, type MRT_ColumnDef } from 'material-react-table';
-import { saveAs } from 'file-saver';
-import { Publicacion } from '../types/Publicacion';
+import {Box, Button, Typography} from '@mui/material';
+import {MaterialReactTable, type MRT_ColumnDef} from 'material-react-table';
+import {saveAs} from 'file-saver';
+import {Publicacion} from '../types/Publicacion';
 
 interface Props {
     publicaciones: Publicacion[];
     serviceId: string;
     isServiceIdValid: boolean;
+    coeficientesMap: Record<string, string>;
 }
 
 interface CSVRow {
@@ -30,8 +31,8 @@ interface Coincidencia {
     coeficientPrice: number;
     safety_stock?: number;
     createdAt: string;
-    updatedAt:  string;
-    deletedAt:  string;
+    updatedAt: string;
+    deletedAt: string;
     dateLastSync: string;
 }
 
@@ -43,7 +44,14 @@ interface ErrorDeCruce {
     skuERP: string;
 }
 
-const CSVComparador: React.FC<Props> = ({ publicaciones, serviceId, isServiceIdValid }) => {
+const parseCoef = (raw?: string): number => {
+    if (!raw) return 1;
+    const n = parseFloat(raw.replace(',', '.'));
+    return Number.isFinite(n) ? n : 1;
+};
+
+
+const CSVComparador: React.FC<Props> = ({publicaciones, serviceId, isServiceIdValid, coeficientesMap}) => {
     const [coincidencias, setCoincidencias] = useState<Coincidencia[]>([]);
     const [errores, setErrores] = useState<ErrorDeCruce[]>([]);
 
@@ -60,7 +68,7 @@ const CSVComparador: React.FC<Props> = ({ publicaciones, serviceId, isServiceIdV
                 const skuMap: Record<string, { id: string; erpId: string }> = {};
                 parsed.forEach(row => {
                     if (row.sku) {
-                        skuMap[row.sku] = { id: row.id, erpId: row.articleId };
+                        skuMap[row.sku] = {id: row.id, erpId: row.articleId};
                     }
                 });
 
@@ -74,6 +82,8 @@ const CSVComparador: React.FC<Props> = ({ publicaciones, serviceId, isServiceIdV
         const incorrectos: ErrorDeCruce[] = [];
 
         publicaciones.forEach(pub => {
+
+            const priceCoef = parseCoef(coeficientesMap[pub.id]);
             if (pub.variants?.length) {
                 const allMatch = pub.variants.every(v => v.sku && skuMap[v.sku]);
                 if (allMatch) {
@@ -92,7 +102,7 @@ const CSVComparador: React.FC<Props> = ({ publicaciones, serviceId, isServiceIdV
                                 variantId: variant.id,
                                 isPrimaryVariant: isFirst ? '1' : '0',
                                 coeficientStock: 1,
-                                coeficientPrice: 1,
+                                coeficientPrice: priceCoef,
                                 safety_stock: 0,
                                 createdAt: '',
                                 updatedAt: '',
@@ -127,7 +137,7 @@ const CSVComparador: React.FC<Props> = ({ publicaciones, serviceId, isServiceIdV
                         variantId: '',
                         isPrimaryVariant: '',
                         coeficientStock: 1,
-                        coeficientPrice: 1,
+                        coeficientPrice: priceCoef,
                         safety_stock: 0,
                         createdAt: '',
                         updatedAt: '',
@@ -152,61 +162,61 @@ const CSVComparador: React.FC<Props> = ({ publicaciones, serviceId, isServiceIdV
 
     const exportarCoincidencias = () => {
         const csv = Papa.unparse(coincidencias);
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
         saveAs(blob, 'Coincidencias.csv');
     };
 
     const exportarErrores = () => {
         const csv = Papa.unparse(errores);
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
         saveAs(blob, 'Errores.csv');
     };
 
     const columnsCoincidencias: MRT_ColumnDef<Coincidencia>[] = [
-        { accessorKey: 'productId', header: 'ID ERP' },
-        { accessorKey: 'destinationProductId', header: 'ID Publicación' },
-        { accessorKey: 'erpId', header: 'ID Artículo ERP' },
-        { accessorKey: 'variantId', header: 'ID Variante' },
-        { accessorKey: 'isPrimaryVariant', header: 'Principal' },
+        {accessorKey: 'productId', header: 'ID ERP'},
+        {accessorKey: 'destinationProductId', header: 'ID Publicación'},
+        {accessorKey: 'erpId', header: 'ID Artículo ERP'},
+        {accessorKey: 'variantId', header: 'ID Variante'},
+        {accessorKey: 'isPrimaryVariant', header: 'Principal'},
     ];
 
     const columnsErrores: MRT_ColumnDef<ErrorDeCruce>[] = [
-        { accessorKey: 'publicacion', header: 'Publicación' },
-        { accessorKey: 'nombre', header: 'Nombre' },
-        { accessorKey: 'skuCargado', header: 'SKU cargado' },
-        { accessorKey: 'variante', header: 'N° Variante' },
-        { accessorKey: 'skuERP', header: 'Resultado' },
+        {accessorKey: 'publicacion', header: 'Publicación'},
+        {accessorKey: 'nombre', header: 'Nombre'},
+        {accessorKey: 'skuCargado', header: 'SKU cargado'},
+        {accessorKey: 'variante', header: 'N° Variante'},
+        {accessorKey: 'skuERP', header: 'Resultado'},
     ];
 
     return (
-        <Box sx={{ mt: 4 }}>
-            <Button variant="contained" component="label" disabled={!isServiceIdValid} >
+        <Box sx={{mt: 4}}>
+            <Button variant="contained" component="label" disabled={!isServiceIdValid}>
                 Subir CSV
-                <input type="file" hidden accept=".csv" onChange={handleCSVUpload} />
+                <input type="file" hidden accept=".csv" onChange={handleCSVUpload}/>
             </Button>
 
             {coincidencias.length > 0 && (
                 <>
-                    <Typography variant="h6" sx={{ mt: 6, textAlign: 'center' }}>
+                    <Typography variant="h6" sx={{mt: 6, textAlign: 'center'}}>
                         Coincidencias
                     </Typography>
-                    <MaterialReactTable data={coincidencias} columns={columnsCoincidencias} />
+                    <MaterialReactTable data={coincidencias} columns={columnsCoincidencias}/>
                 </>
             )}
 
             {errores.length > 0 && (
                 <>
-                    <Typography variant="h6" sx={{ mt: 6, textAlign: 'center' }}>
+                    <Typography variant="h6" sx={{mt: 6, textAlign: 'center'}}>
                         Errores ⚠️
                     </Typography>
 
-                    <MaterialReactTable data={errores} columns={columnsErrores} />
+                    <MaterialReactTable data={errores} columns={columnsErrores}/>
                 </>
             )}
 
             {(coincidencias.length > 0 || errores.length > 0) && (
-                <Box sx={{ mt: 2, display: 'flex', gap: 2, justifyContent: 'center' }}>
-                <Button variant="outlined" onClick={exportarCoincidencias} disabled={!coincidencias.length}>
+                <Box sx={{mt: 2, display: 'flex', gap: 2, justifyContent: 'center'}}>
+                    <Button variant="outlined" onClick={exportarCoincidencias} disabled={!coincidencias.length}>
                         Exportar Coincidencias
                     </Button>
                     <Button variant="outlined" color="error" onClick={exportarErrores} disabled={!errores.length}>
