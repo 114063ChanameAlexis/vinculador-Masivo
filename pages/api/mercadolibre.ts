@@ -22,7 +22,7 @@ function getSKUFromAttributes(attrs?: MLAttribute[]): string {
 
 function normalizeSKU(primary?: string | null, fallbackAttrSKU?: string): string {
     // Prioridad: seller_custom_field > attribute SELLER_SKU
-    return (primary?.trim() || fallbackAttrSKU || '').trim();
+    return (primary || fallbackAttrSKU || '');
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -59,7 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             variants = await Promise.all(
                 (item.variations as MLVariation[]).map(async (v) => {
                     // Intento 1: SKU directo en la variación
-                    const skuDirect = normalizeSKU(v.seller_custom_field, getSKUFromAttributes(v.attributes));
+                    const skuDirect = normalizeSKU(getSKUFromAttributes(v.attributes));
 
                     if (skuDirect) {
                         return { id: String(v.id), sku: skuDirect };
@@ -78,7 +78,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
                         const vData: MLVariation = await vRes.json();
                         const skuFromDetail = normalizeSKU(
-                            vData.seller_custom_field,
                             getSKUFromAttributes(vData.attributes)
                         );
 

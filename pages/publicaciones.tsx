@@ -170,6 +170,7 @@
                             publicaciones={publicacionesParaCruzar}
                             serviceId={serviceId}
                             isServiceIdValid={Boolean(serviceId.trim())}
+                            coeficientesMap={{}}
                         />
                     </>
                 )}

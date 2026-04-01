@@ -83,7 +83,7 @@ const CSVComparador: React.FC<Props> = ({publicaciones, serviceId, isServiceIdVa
 
         publicaciones.forEach(pub => {
 
-            const priceCoef = parseCoef(coeficientesMap[pub.id]);
+            const priceCoef = parseCoef(String(coeficientesMap?.[pub.id] ?? 1));
             if (pub.variants?.length) {
                 const allMatch = pub.variants.every(v => v.sku && skuMap[v.sku]);
                 if (allMatch) {

@@ -11,7 +11,7 @@ export class ShopifyStrategy implements CanalStrategy {
             throw new Error('Faltan datos: apiKey o shopUrl');
         }
 
-        let url: string | null = `https://${shop_domain}/admin/api/2023-07/products.json?limit=250`;
+        let url: string | null = `https://${shop_domain}/admin/api/2025-04/products.json?status=active&limit=250`;
         const todosLosProductos: ShopifyProducto[] = [];
 
         while (url) {
