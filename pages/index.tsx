@@ -1,5 +1,5 @@
 import Head from 'next/head';
-import FormularioMatcher from '../components/_form';
+import FormularioMatcher from '../components/FormularioMatcher';
 
 export default function Home() {
     return (

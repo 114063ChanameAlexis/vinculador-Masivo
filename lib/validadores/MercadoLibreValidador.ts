@@ -1,8 +1,10 @@
 import { ValidadorStrategy } from './ValidadorStrategy';
+import { MercadoLibreCredenciales } from '../../types/Credenciales';
+import { USER_AGENT } from '../utils/http';
 
 export class MercadoLibreValidador implements ValidadorStrategy {
     async validarCredenciales(data: Record<string, unknown>) {
-        const token = data.token as string;
+        const { token } = data as unknown as MercadoLibreCredenciales;
         if (!token) return { valido: false, mensaje: 'Token requerido' };
 
         try {
@@ -10,7 +12,7 @@ export class MercadoLibreValidador implements ValidadorStrategy {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
-                    'User-Agent': 'Integrador Wualá (info@wuala.net)',
+                    'User-Agent': USER_AGENT,
                 }
             });
 

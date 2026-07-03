@@ -27,13 +27,13 @@ interface Coincidencia {
     isVariant?: string;
     variantId?: string;
     isPrimaryVariant?: string;
-    coeficientStock: number;
     coeficientPrice: number;
     safety_stock?: number;
     createdAt: string;
     updatedAt: string;
     deletedAt: string;
     dateLastSync: string;
+    listingId: string;
 }
 
 interface ErrorDeCruce {
@@ -101,13 +101,13 @@ const CSVComparador: React.FC<Props> = ({publicaciones, serviceId, isServiceIdVa
                                 isVariant: '1',
                                 variantId: variant.id,
                                 isPrimaryVariant: isFirst ? '1' : '0',
-                                coeficientStock: 1,
                                 coeficientPrice: priceCoef,
                                 safety_stock: 0,
                                 createdAt: '',
                                 updatedAt: '',
                                 deletedAt: '',
-                                dateLastSync: ''
+                                dateLastSync: '',
+                                listingId: ''
                             });
                             isFirst = false;
                         }
@@ -136,13 +136,13 @@ const CSVComparador: React.FC<Props> = ({publicaciones, serviceId, isServiceIdVa
                         isVariant: '',
                         variantId: '',
                         isPrimaryVariant: '',
-                        coeficientStock: 1,
                         coeficientPrice: priceCoef,
                         safety_stock: 0,
                         createdAt: '',
                         updatedAt: '',
                         deletedAt: '',
-                        dateLastSync: ''
+                        dateLastSync: '',
+                        listingId: ''
                     });
                 } else {
                     incorrectos.push({

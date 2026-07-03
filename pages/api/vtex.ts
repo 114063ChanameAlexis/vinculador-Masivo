@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { Publicacion } from '../../types/Publicacion';
+import { normalizarBaseUrlVtex, requirePost } from '../../lib/utils/http';
 
 interface VtexProduct {
     Id: number;
@@ -13,9 +14,7 @@ interface VtexSku {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Método no permitido' });
-    }
+    if (requirePost(req, res)) return;
 
     const { api_key, api_token, api_url, id } = req.body;
 
@@ -23,12 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ error: 'Faltan datos obligatorios' });
     }
 
-    let baseUrl = api_url.trim().replace(/\/+$/, '');
-
-// Si no empieza con http(s), lo asumimos como subdominio de VTEX
-    if (!/^https?:\/\//.test(baseUrl)) {
-        baseUrl = `https://${baseUrl}.myvtex.com`;
-    }
+    const baseUrl = normalizarBaseUrlVtex(api_url);
 
     const headers = {
         'X-VTEX-API-AppKey': api_key,

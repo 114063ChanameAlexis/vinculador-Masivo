@@ -1,4 +1,5 @@
 import { ValidadorStrategy } from './ValidadorStrategy';
+import { ShopifyCredenciales } from '../../types/Credenciales';
 
 export class ShopifyValidador implements ValidadorStrategy {
     async validarCredenciales(data: Record<string, unknown>): Promise<{
@@ -10,8 +11,7 @@ export class ShopifyValidador implements ValidadorStrategy {
             dominio?: string;
         };
     }> {
-        const apiKey = data.apiKey as string;
-        const shopUrl = data.shopUrl as string;
+        const { apiKey, shopUrl } = data as unknown as ShopifyCredenciales;
 
         if (!apiKey || !shopUrl) {
             return { valido: false, mensaje: 'Faltan datos: apiKey o shopUrl' };

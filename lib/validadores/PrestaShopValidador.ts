@@ -1,4 +1,6 @@
 import { ValidadorStrategy } from './ValidadorStrategy';
+import { PrestaShopCredenciales } from '../../types/Credenciales';
+import { basicAuthHeader } from '../utils/http';
 
 export class PrestaShopValidador implements ValidadorStrategy {
     async validarCredenciales(data: Record<string, unknown>): Promise<{
@@ -9,9 +11,7 @@ export class PrestaShopValidador implements ValidadorStrategy {
             entidad?: string;
         };
     }> {
-        const api_key = data.api_key as string;
-        const prestashop_url = data.prestashop_url as string;
-        const site_protocol = data.site_protocol as string;
+        const { api_key, prestashop_url, site_protocol } = data as unknown as PrestaShopCredenciales;
 
         if (!api_key || !prestashop_url || !site_protocol) {
             return { valido: false, mensaje: 'Faltan datos: api_key, URL o protocolo' };
@@ -23,7 +23,7 @@ export class PrestaShopValidador implements ValidadorStrategy {
             const res = await fetch(endpoint, {
                 method: 'GET',
                 headers: {
-                    Authorization: 'Basic ' + Buffer.from(api_key + ':').toString('base64'),
+                    Authorization: basicAuthHeader(api_key),
                     'Content-Type': 'application/json',
                 },
             });

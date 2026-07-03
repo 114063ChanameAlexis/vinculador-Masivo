@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { Publicacion } from '../../types/Publicacion';
+import { basicAuthHeader, requirePost } from '../../lib/utils/http';
 
 interface Product {
     id: number;
@@ -23,9 +24,7 @@ interface CombinationList {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Método no permitido' });
-    }
+    if (requirePost(req, res)) return;
 
     const { site_protocol, prestashop_url, api_key, id } = req.body;
 
@@ -35,7 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const storeUrl = `${site_protocol}://${prestashop_url.replace(/\/+$/, '')}`;
     const headers = {
-        Authorization: `Basic ${Buffer.from(api_key + ':').toString('base64')}`,
+        Authorization: basicAuthHeader(api_key),
     };
 
     try {

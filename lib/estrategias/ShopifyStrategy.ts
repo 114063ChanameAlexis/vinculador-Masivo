@@ -1,11 +1,20 @@
 import { CanalStrategy } from './CanalStrategy';
 import { Publicacion } from '../../types/Publicacion';
-import { ShopifyProducto } from '../../types/ShopifyProducto';
+import { ShopifyCredenciales } from '../../types/Credenciales';
+
+interface ShopifyProducto {
+    id: number;
+    title: string;
+    variants: {
+        id: number;
+        sku: string;
+    }[];
+}
 
 export class ShopifyStrategy implements CanalStrategy {
     async obtenerPublicaciones(data: Record<string, unknown>): Promise<Publicacion[]> {
-        const access_token = data.apiKey as string; // <- se usa "apiKey" como token
-        const shop_domain = `${data.shopUrl}.myshopify.com`; // <- dominio completo de Shopify
+        const { apiKey: access_token, shopUrl } = data as unknown as ShopifyCredenciales; // <- "apiKey" se usa como token
+        const shop_domain = `${shopUrl}.myshopify.com`; // <- dominio completo de Shopify
 
         if (!access_token || !shop_domain) {
             throw new Error('Faltan datos: apiKey o shopUrl');

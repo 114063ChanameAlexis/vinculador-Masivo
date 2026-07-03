@@ -1,4 +1,6 @@
 import { ValidadorStrategy } from './ValidadorStrategy';
+import { VtexCredenciales } from '../../types/Credenciales';
+import { normalizarBaseUrlVtex } from '../utils/http';
 
 export class VtexValidador implements ValidadorStrategy {
     async validarCredenciales(data: Record<string, unknown>): Promise<{
@@ -9,19 +11,13 @@ export class VtexValidador implements ValidadorStrategy {
             ping?: string;
         };
     }> {
-        const api_key = data.api_key as string;
-        const api_token = data.api_token as string;
-        const api_url = data.api_url as string;
+        const { api_key, api_token, api_url } = data as unknown as VtexCredenciales;
 
         if (!api_key || !api_token || !api_url) {
             return { valido: false, mensaje: 'Faltan datos: api_key, api_token o api_url' };
         }
 
-        let baseUrl = api_url.trim().replace(/\/+$/, '');
-
-        if (!/^https?:\/\//.test(baseUrl)) {
-            baseUrl = `https://${baseUrl}.myvtex.com`;
-        }
+        const baseUrl = normalizarBaseUrlVtex(api_url);
 
         const endpoint = `${baseUrl}/api/catalog_system/pvt/products/GetProductAndSkuIds`;
 

@@ -1,11 +1,10 @@
 // pages/api/validar.ts
 import type {NextApiRequest, NextApiResponse} from 'next';
 import {getValidador} from '../../lib/validadores/ValidadorFactory';
+import {requirePost} from '../../lib/utils/http';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method !== 'POST') {
-        return res.status(405).json({error: 'Método no permitido'});
-    }
+    if (requirePost(req, res)) return;
 
     const {canal, ...credenciales} = req.body;
 

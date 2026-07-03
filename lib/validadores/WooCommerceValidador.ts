@@ -1,4 +1,6 @@
 import { ValidadorStrategy } from './ValidadorStrategy';
+import { WooCommerceCredenciales } from '../../types/Credenciales';
+import { basicAuthHeader, USER_AGENT } from '../utils/http';
 
 export class WooCommerceValidador implements ValidadorStrategy {
     async validarCredenciales(data: Record<string, unknown>): Promise<{
@@ -9,9 +11,7 @@ export class WooCommerceValidador implements ValidadorStrategy {
             tiendaActiva?: boolean;
         };
     }> {
-        const consumerKey = data.consumerKey as string;
-        const consumerSecret = data.consumerSecret as string;
-        const storeUrl = data.storeUrl as string;
+        const { consumerKey, consumerSecret, storeUrl } = data as unknown as WooCommerceCredenciales;
 
         if (!consumerKey || !consumerSecret || !storeUrl) {
             return { valido: false, mensaje: 'Faltan datos: consumerKey, consumerSecret o storeUrl' };
@@ -20,13 +20,11 @@ export class WooCommerceValidador implements ValidadorStrategy {
         const endpoint = `${storeUrl}/wp-json/wc/v3/products?per_page=1`;
 
         try {
-            const credentials = Buffer.from(`${consumerKey}:${consumerSecret}`).toString('base64');
-
             const res = await fetch(endpoint, {
                 headers: {
-                    Authorization: `Basic ${credentials}`,
+                    Authorization: basicAuthHeader(consumerKey, consumerSecret),
                     'Content-Type': 'application/json',
-                    'User-Agent': 'Integrador Wualá (info@wuala.net)',
+                    'User-Agent': USER_AGENT,
                 },
             });
 

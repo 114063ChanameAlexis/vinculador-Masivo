@@ -1,4 +1,6 @@
 import { ValidadorStrategy } from './ValidadorStrategy';
+import { TiendanubeCredenciales } from '../../types/Credenciales';
+import { USER_AGENT } from '../utils/http';
 
 export class TiendanubeValidador implements ValidadorStrategy {
     async validarCredenciales(data: Record<string, unknown>): Promise<{
@@ -10,8 +12,7 @@ export class TiendanubeValidador implements ValidadorStrategy {
             dominio?: string;
         };
     }> {
-        const access_token = data.access_token as string;
-        const tienda_id = data.tienda_id as string;
+        const { access_token, tienda_id } = data as unknown as TiendanubeCredenciales;
 
         console.log('🔐 Validando Tiendanube con:');
         console.log('🔑 access_token:', access_token?.slice(0, 4) + '****');
@@ -30,7 +31,7 @@ export class TiendanubeValidador implements ValidadorStrategy {
                 headers: {
                     'Content-Type': 'application/json; charset=utf-8',
                     'Authentication': `bearer ${access_token}`,
-                    'User-Agent': 'Integrador Wualá (info@wuala.net)'
+                    'User-Agent': USER_AGENT
                 },
             });
 

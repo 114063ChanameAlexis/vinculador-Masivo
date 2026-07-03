@@ -83,7 +83,9 @@ const ConsultasPage = () => {
             </Typography>
 
             <Typography variant="body2" sx={{mb: 2}}>
-                ✔️ El archivo debe tener una columna llamada <strong>id</strong>
+                ✔️ El archivo debe tener una columna llamada <strong>id</strong> (obligatoria)
+                <br/>
+                ✔️ Opcionalmente, una columna <strong>Coeficiente</strong> para ajustar el precio de esa publicación (si no se incluye, se usa 1 por defecto)
                 <br/>
                 ✔️ Se procesará directamente en el navegador usando <strong>PapaParse</strong>
                 <br/>

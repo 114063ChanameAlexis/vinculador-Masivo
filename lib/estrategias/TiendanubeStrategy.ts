@@ -1,11 +1,24 @@
 import { CanalStrategy } from './CanalStrategy';
 import { Publicacion } from '../../types/Publicacion';
-import { TiendanubeProducto } from '../../types/TiendanubeProducto';
+import { TiendanubeCredenciales } from '../../types/Credenciales';
+import { USER_AGENT } from '../utils/http';
+
+interface TiendanubeProducto {
+    id: number;
+    name: {
+        es: string;
+        [key: string]: string;
+    };
+    sku?: string; // <- SKU a nivel de producto (opcional)
+    variants?: {
+        id: string;
+        sku: string;
+    }[];
+}
 
 export class TiendanubeStrategy implements CanalStrategy {
     async obtenerPublicaciones(data: Record<string, unknown>): Promise<Publicacion[]> {
-        const access_token = data.access_token as string;
-        const tienda_id = data.tienda_id as string;
+        const { access_token, tienda_id } = data as unknown as TiendanubeCredenciales;
 
         if (!access_token || !tienda_id) {
             throw new Error('Faltan datos: access_token o tienda_id');
@@ -23,7 +36,7 @@ export class TiendanubeStrategy implements CanalStrategy {
                 headers: {
                     'Content-Type': 'application/json; charset=utf-8',
                     'Authentication': `bearer ${access_token}`,
-                    'User-Agent': 'Integrador Wualá (info@wuala.net)'
+                    'User-Agent': USER_AGENT
                 }
             });
 

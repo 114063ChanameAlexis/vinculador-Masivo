@@ -1,6 +1,7 @@
 // pages/api/mercadolibre.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { Publicacion } from '../../types/Publicacion';
+import { requirePost } from '../../lib/utils/http';
 
 type MLAttribute = { id: string; value_name?: string };
 type MLVariation = {
@@ -26,9 +27,7 @@ function normalizeSKU(primary?: string | null, fallbackAttrSKU?: string): string
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Método no permitido' });
-    }
+    if (requirePost(req, res)) return;
 
     const { id, token } = req.body || {};
     if (!id || !token) {

@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { Publicacion } from '../../types/Publicacion';
+import { basicAuthHeader, requirePost, USER_AGENT } from '../../lib/utils/http';
 
 interface WooVariant {
     id: number;
@@ -7,9 +8,7 @@ interface WooVariant {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Método no permitido' });
-    }
+    if (requirePost(req, res)) return;
 
     const { storeUrl, id, consumerKey, consumerSecret } = req.body;
 
@@ -18,11 +17,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
-        const credentials = Buffer.from(`${consumerKey}:${consumerSecret}`).toString('base64');
         const headers = {
-            Authorization: `Basic ${credentials}`,
+            Authorization: basicAuthHeader(consumerKey, consumerSecret),
             'Content-Type': 'application/json',
-            'User-Agent': 'Integrador Wualá (info@wuala.net)',
+            'User-Agent': USER_AGENT,
         };
 
         // Consulta principal del producto
