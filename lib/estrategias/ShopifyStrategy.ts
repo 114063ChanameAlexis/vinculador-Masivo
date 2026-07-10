@@ -2,13 +2,17 @@ import { CanalStrategy } from './CanalStrategy';
 import { Publicacion } from '../../types/Publicacion';
 import { ShopifyCredenciales } from '../../types/Credenciales';
 
+interface ShopifyVariante {
+    id: number;
+    sku: string;
+    title: string;        // <- "Default Title" si el producto NO tiene variantes reales
+    option1: string | null;
+}
+
 interface ShopifyProducto {
     id: number;
     title: string;
-    variants: {
-        id: number;
-        sku: string;
-    }[];
+    variants: ShopifyVariante[];
 }
 
 export class ShopifyStrategy implements CanalStrategy {
@@ -49,17 +53,28 @@ export class ShopifyStrategy implements CanalStrategy {
         }
 
         return todosLosProductos.map((p) => {
-            if (Array.isArray(p.variants) && p.variants.length > 1) {
+            const variantes = Array.isArray(p.variants) ? p.variants : [];
+
+            // Shopify SIEMPRE crea al menos 1 variante. La variante "por defecto"
+            // de un producto simple se llama "Default Title" (option1 === "Default Title").
+            // Si la única variante NO es esa, el producto tiene variantes reales.
+            const tieneVariantesReales =
+                variantes.length > 1 ||
+                (variantes.length === 1 &&
+                    variantes[0].option1 !== 'Default Title' &&
+                    variantes[0].title !== 'Default Title');
+
+            if (tieneVariantesReales) {
                 return {
                     id: p.id.toString(),
                     title: p.title || 'Sin título',
-                    variants: p.variants.map((v) => ({
+                    variants: variantes.map((v) => ({
                         id: v.id.toString(),
                         sku: v.sku || '',
                     })),
                 };
             } else {
-                const variant = p.variants?.[0];
+                const variant = variantes[0];
                 return {
                     id: p.id.toString(),
                     title: p.title || 'Sin título',
