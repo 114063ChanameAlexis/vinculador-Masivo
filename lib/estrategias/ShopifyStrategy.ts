@@ -5,8 +5,6 @@ import { ShopifyCredenciales } from '../../types/Credenciales';
 interface ShopifyVariante {
     id: number;
     sku: string;
-    title: string;        // <- "Default Title" si el producto NO tiene variantes reales
-    option1: string | null;
 }
 
 interface ShopifyProducto {
@@ -52,35 +50,20 @@ export class ShopifyStrategy implements CanalStrategy {
             }
         }
 
+        // Shopify SIEMPRE devuelve al menos 1 variante por producto (la "Default Title"
+        // en los productos simples), y cada variante trae su propio id y sku.
+        // Por eso tratamos TODAS las publicaciones como variantes: así conservamos
+        // siempre el variantId, que es lo que el vinculador necesita para operar.
         return todosLosProductos.map((p) => {
             const variantes = Array.isArray(p.variants) ? p.variants : [];
-
-            // Shopify SIEMPRE crea al menos 1 variante. La variante "por defecto"
-            // de un producto simple se llama "Default Title" (option1 === "Default Title").
-            // Si la única variante NO es esa, el producto tiene variantes reales.
-            const tieneVariantesReales =
-                variantes.length > 1 ||
-                (variantes.length === 1 &&
-                    variantes[0].option1 !== 'Default Title' &&
-                    variantes[0].title !== 'Default Title');
-
-            if (tieneVariantesReales) {
-                return {
-                    id: p.id.toString(),
-                    title: p.title || 'Sin título',
-                    variants: variantes.map((v) => ({
-                        id: v.id.toString(),
-                        sku: v.sku || '',
-                    })),
-                };
-            } else {
-                const variant = variantes[0];
-                return {
-                    id: p.id.toString(),
-                    title: p.title || 'Sin título',
-                    sku: variant?.sku || '',
-                };
-            }
+            return {
+                id: p.id.toString(),
+                title: p.title || 'Sin título',
+                variants: variantes.map((v) => ({
+                    id: v.id.toString(),
+                    sku: v.sku || '',
+                })),
+            };
         });
     }
 }
