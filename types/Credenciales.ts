@@ -1,5 +1,6 @@
 export interface MercadoLibreCredenciales {
     token: string;
+    userId?: string;
 }
 
 export interface ShopifyCredenciales {

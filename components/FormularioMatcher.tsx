@@ -55,10 +55,15 @@ const FormularioMatcher = () => {
             severidad: 'success',
         });
 
-        sessionStorage.setItem('canal', canal);
-        sessionStorage.setItem('formData', JSON.stringify(formData));
+        const formDataConId =
+            canal === 'mercadolibre' && result.datos?.id
+                ? { ...formData, userId: String(result.datos.id) }
+                : formData;
 
-        const canalesPublicaciones = ['tiendanube', 'shopify', 'woocommerce'];
+        sessionStorage.setItem('canal', canal);
+        sessionStorage.setItem('formData', JSON.stringify(formDataConId));
+
+        const canalesPublicaciones = ['tiendanube', 'shopify', 'woocommerce', 'mercadolibre'];
         const destino = canalesPublicaciones.includes(canal)
             ? '/publicaciones'
             : '/consultas';
