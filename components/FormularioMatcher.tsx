@@ -4,6 +4,8 @@ import { Snackbar, Alert, type AlertColor } from '@mui/material';
 import { canales, camposPorCanal } from '../lib/canales';
 import styles from '../styles/FormularioMatcher.module.css';
 
+const CANALES_PUBLICACIONES = ['tiendanube', 'shopify', 'woocommerce', 'mercadolibre'];
+
 const FormularioMatcher = () => {
     const [canal, setCanal] = useState('');
     const [formData, setFormData] = useState<Record<string, string>>({});
@@ -63,8 +65,7 @@ const FormularioMatcher = () => {
         sessionStorage.setItem('canal', canal);
         sessionStorage.setItem('formData', JSON.stringify(formDataConId));
 
-        const canalesPublicaciones = ['tiendanube', 'shopify', 'woocommerce', 'mercadolibre'];
-        const destino = canalesPublicaciones.includes(canal)
+        const destino = CANALES_PUBLICACIONES.includes(canal)
             ? '/publicaciones'
             : '/consultas';
 
@@ -93,6 +94,14 @@ const FormularioMatcher = () => {
                     </div>
                 ))}
             </div>
+
+            {canal && (
+                <p className={styles.infoCanal}>
+                    {CANALES_PUBLICACIONES.includes(canal)
+                        ? 'Vas a ver el listado completo de tus publicaciones para elegir cuáles cruzar con tu ERP.'
+                        : 'Vas a consultar publicaciones puntuales por ID.'}
+                </p>
+            )}
 
             {canal &&
                 camposPorCanal[canal]?.map((campo) => (

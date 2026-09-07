@@ -40,6 +40,15 @@
     object-fit: contain;
 }
 
+.infoCanal {
+    color: #1a1a2e;
+    font-weight: 600;
+    font-size: 14px;
+    margin: -0.5rem 0 1rem;
+    text-align: center;
+    text-shadow: 0 1px 3px rgba(255, 255, 255, 0.5);
+}
+
 .campoInput {
     display: block;
     margin-bottom: 0.5rem;

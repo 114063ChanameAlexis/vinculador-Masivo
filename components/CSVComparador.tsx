@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import Papa from 'papaparse';
-import {Box, Button, Typography} from '@mui/material';
+import {Box, Button, TextField, Typography} from '@mui/material';
 import {MaterialReactTable, type MRT_ColumnDef} from 'material-react-table';
 import {saveAs} from 'file-saver';
 import {Publicacion} from '../types/Publicacion';
@@ -10,6 +10,7 @@ interface Props {
     serviceId: string;
     isServiceIdValid: boolean;
     coeficientesMap: Record<string, string>;
+    onResultados?: () => void;
 }
 
 interface CSVRow {
@@ -51,9 +52,11 @@ const parseCoef = (raw?: string): number => {
 };
 
 
-const CSVComparador: React.FC<Props> = ({publicaciones, serviceId, isServiceIdValid, coeficientesMap}) => {
+const CSVComparador: React.FC<Props> = ({publicaciones, serviceId, isServiceIdValid, coeficientesMap, onResultados}) => {
     const [coincidencias, setCoincidencias] = useState<Coincidencia[]>([]);
     const [errores, setErrores] = useState<ErrorDeCruce[]>([]);
+    const [safetyStockGeneral, setSafetyStockGeneral] = useState('0');
+    const [coeficientePriceGeneral, setCoeficientePriceGeneral] = useState('1');
 
     const handleCSVUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
 
@@ -158,6 +161,23 @@ const CSVComparador: React.FC<Props> = ({publicaciones, serviceId, isServiceIdVa
 
         setCoincidencias(correctos);
         setErrores(incorrectos);
+
+        if (correctos.length > 0 || incorrectos.length > 0) {
+            onResultados?.();
+        }
+    };
+
+    const aplicarATodas = () => {
+        const safetyStock = parseInt(safetyStockGeneral, 10);
+        const coeficientPrice = parseCoef(coeficientePriceGeneral);
+
+        setCoincidencias(prev =>
+            prev.map(c => ({
+                ...c,
+                safety_stock: Number.isFinite(safetyStock) ? safetyStock : 0,
+                coeficientPrice,
+            }))
+        );
     };
 
     const exportarCoincidencias = () => {
@@ -178,6 +198,8 @@ const CSVComparador: React.FC<Props> = ({publicaciones, serviceId, isServiceIdVa
         {accessorKey: 'erpId', header: 'ID Artículo ERP'},
         {accessorKey: 'variantId', header: 'ID Variante'},
         {accessorKey: 'isPrimaryVariant', header: 'Principal'},
+        {accessorKey: 'safety_stock', header: 'Safety Stock'},
+        {accessorKey: 'coeficientPrice', header: 'Coeficiente Precio'},
     ];
 
     const columnsErrores: MRT_ColumnDef<ErrorDeCruce>[] = [
@@ -196,32 +218,61 @@ const CSVComparador: React.FC<Props> = ({publicaciones, serviceId, isServiceIdVa
             </Button>
 
             {coincidencias.length > 0 && (
-                <>
-                    <Typography variant="h6" sx={{mt: 6, textAlign: 'center'}}>
-                        Coincidencias
+                <Box sx={{mt: 4, backgroundColor: '#fff', borderRadius: 2, p: 2}}>
+                    <Typography
+                        variant="h6"
+                        sx={{mb: 2, textAlign: 'center', fontWeight: 700, color: '#2e7d32'}}
+                    >
+                        ✅ Coincidencias
                     </Typography>
+
+                    <Box sx={{display: 'flex', gap: 2, alignItems: 'center', mb: 2, flexWrap: 'wrap'}}>
+                        <TextField
+                            label="Safety Stock"
+                            type="number"
+                            size="small"
+                            value={safetyStockGeneral}
+                            onChange={(e) => setSafetyStockGeneral(e.target.value)}
+                        />
+                        <TextField
+                            label="Coeficiente Precio"
+                            type="number"
+                            size="small"
+                            value={coeficientePriceGeneral}
+                            onChange={(e) => setCoeficientePriceGeneral(e.target.value)}
+                        />
+                        <Button variant="outlined" onClick={aplicarATodas}>
+                            Aplicar a todas
+                        </Button>
+                    </Box>
+
                     <MaterialReactTable data={coincidencias} columns={columnsCoincidencias}/>
-                </>
+                    <Box sx={{mt: 2, display: 'flex', justifyContent: 'center'}}>
+                        <Button
+                            variant="contained"
+                            sx={{backgroundColor: '#5d0cff', '&:hover': {backgroundColor: '#4b0ac9'}}}
+                            onClick={exportarCoincidencias}
+                        >
+                            Exportar Coincidencias
+                        </Button>
+                    </Box>
+                </Box>
             )}
 
             {errores.length > 0 && (
-                <>
-                    <Typography variant="h6" sx={{mt: 6, textAlign: 'center'}}>
-                        Errores ⚠️
+                <Box sx={{mt: 4, backgroundColor: '#fff', borderRadius: 2, p: 2}}>
+                    <Typography
+                        variant="h6"
+                        sx={{mb: 2, textAlign: 'center', fontWeight: 700, color: '#c62828'}}
+                    >
+                        ⚠️ Errores
                     </Typography>
-
                     <MaterialReactTable data={errores} columns={columnsErrores}/>
-                </>
-            )}
-
-            {(coincidencias.length > 0 || errores.length > 0) && (
-                <Box sx={{mt: 2, display: 'flex', gap: 2, justifyContent: 'center'}}>
-                    <Button variant="outlined" onClick={exportarCoincidencias} disabled={!coincidencias.length}>
-                        Exportar Coincidencias
-                    </Button>
-                    <Button variant="outlined" color="error" onClick={exportarErrores} disabled={!errores.length}>
-                        Exportar Errores
-                    </Button>
+                    <Box sx={{mt: 2, display: 'flex', justifyContent: 'center'}}>
+                        <Button variant="contained" color="error" onClick={exportarErrores}>
+                            Exportar Errores
+                        </Button>
+                    </Box>
                 </Box>
             )}
         </Box>
