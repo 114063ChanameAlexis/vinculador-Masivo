@@ -29,10 +29,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     };
     await requireValidFlexxusSessionToken(body.token, body.supportId);
 
+    // serviceId es opcional: sin el, trae todos los errores del rango
+    // (igual que "Otros errores pedidos" en la app real).
     const serviceId = typeof body.serviceId === "string" ? body.serviceId.trim() : "";
-    if (!serviceId) {
-      return res.status(400).json({ error: "Falta serviceId." });
-    }
 
     const lookbackHours = clampLookbackHours(body.lookbackHours);
     const endTime = Date.now();
@@ -40,7 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const result = await runCloudWatchInsightsQuery({
       logGroupNames: LOG_GROUPS,
-      queryString: buildOtherOrderErrorsQuery({ serviceId, limit: QUERY_LIMIT }),
+      queryString: buildOtherOrderErrorsQuery({ serviceId: serviceId || undefined, limit: QUERY_LIMIT }),
       startTime,
       endTime,
       limit: QUERY_LIMIT,
