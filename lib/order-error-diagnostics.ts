@@ -8,6 +8,12 @@ export type OrderErrorFamily =
   | "Origen marketplace / payload"
   | "Otros";
 
+export type OrderErrorSample = {
+  timestamp: string;
+  correlationId: string;
+  message: string;
+};
+
 export type OrderErrorGroup = {
   key: string;
   client: string;
@@ -17,6 +23,7 @@ export type OrderErrorGroup = {
   correlationIds: string[];
   sources: string[];
   count: number;
+  samples: OrderErrorSample[];
 };
 
 export function buildOtherOrderErrorsQuery(input: { serviceId?: string; limit?: number }) {
@@ -33,6 +40,16 @@ export function buildOtherOrderErrorsQuery(input: { serviceId?: string; limit?: 
     ...filters,
     "| sort @timestamp desc",
     `| limit ${limit}`,
+  ].join("\n");
+}
+
+export function buildOrderTraceQuery(correlationId: string) {
+  const safeCorrelationId = correlationId.trim().replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  return [
+    "fields @timestamp, level, tag, message, details.database, details.message, details.error.message, details.cart, details.orderId, details.orderNumber, details.externalOrderId, details.productId, serviceId, correlationId, @message",
+    `| filter correlationId = "${safeCorrelationId}"`,
+    "| sort @timestamp asc",
+    "| limit 200",
   ].join("\n");
 }
 
@@ -140,6 +157,8 @@ function clientOf(row: CloudWatchInsightsRow) {
   return database || "Sin cliente identificado";
 }
 
+const MAX_SAMPLES_PER_GROUP = 50;
+
 export function groupOrderErrorRows(rows: CloudWatchInsightsRow[]): OrderErrorGroup[] {
   const groups = new Map<string, OrderErrorGroup>();
   for (const row of rows) {
@@ -151,11 +170,13 @@ export function groupOrderErrorRows(rows: CloudWatchInsightsRow[]): OrderErrorGr
     const existing = groups.get(key);
     const correlationId = (row.correlationId || "").trim();
     const source = logSource(row);
+    const sample: OrderErrorSample = { timestamp: row["@timestamp"] || "", correlationId, message };
     if (existing) {
       existing.count += 1;
       if (serviceId && !existing.serviceIds.includes(serviceId)) existing.serviceIds.push(serviceId);
       if (correlationId && !existing.correlationIds.includes(correlationId)) existing.correlationIds.push(correlationId);
       if (source && !existing.sources.includes(source)) existing.sources.push(source);
+      if (existing.samples.length < MAX_SAMPLES_PER_GROUP) existing.samples.push(sample);
       continue;
     }
     groups.set(key, {
@@ -167,6 +188,7 @@ export function groupOrderErrorRows(rows: CloudWatchInsightsRow[]): OrderErrorGr
       correlationIds: correlationId ? [correlationId] : [],
       sources: source ? [source] : [],
       count: 1,
+      samples: [sample],
     });
   }
   return [...groups.values()].sort((a, b) => b.count - a.count || a.client.localeCompare(b.client));
