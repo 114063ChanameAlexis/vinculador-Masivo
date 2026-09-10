@@ -36,6 +36,30 @@ function getBuenosAiresGreeting() {
 
 const SIGNATURE = ["Saludos cordiales.", "Area eCommerce Wuala - Soporte Sincro."];
 
+// Vocabulario fijo por escenario tecnico habitual, para que la redaccion sea
+// consistente entre agentes y tickets en vez de que la IA la reinvente cada vez.
+const PHRASE_BANK: Record<string, string> = {
+  stockNoSincronizado: "Forzamos una sincronización de stock para normalizar el proceso.",
+  publicacionNoVinculada: "La publicación no se encuentra vinculada al SKU correspondiente.",
+  tallesFaltantes: "La sincronización no se completa debido a que dicho talle no se encuentra cargado en Flexxus para el artículo correspondiente.",
+  clienteInactivo: "La venta/pedido no pudo sincronizarse debido a que el cliente se encuentra inactivo en Flexxus.",
+  vinculacionMasivaTiendaNube: "Es requisito indispensable que todas las publicaciones o variantes cuenten con el SKU de Flexxus que las identifica.",
+  reglaPrecios: "La funcionalidad Regla de precios permite aplicar coeficientes de precio utilizando distintos criterios de filtrado, como tipo de publicación o cantidad de cuotas, entre otras posibilidades.",
+  financiacionMeli: "Utilizando el código MLAU, el integrador puede identificar las distintas opciones de pago de una misma publicación, administrando cada una de forma independiente.",
+  facturaAdjuntaMeli: "El integrador adjunta la factura en Mercado Libre, la cual puede ser una versión adaptada y no idéntica visualmente a la emitida por Flexxus.",
+  derivarFlexxus: "Desde nuestro lado verificamos que la información fue enviada y sincronizada correctamente, por lo que el inconveniente estaría relacionado con el comportamiento dentro de Flexxus; recomendamos derivarlo a Soporte Flexxus para su análisis directo en el ERP.",
+  pedidoTrabadoResuelto: "El proceso de sincronización se encontraba detenido. Se realizaron las acciones correspondientes y el pedido pudo sincronizarse correctamente.",
+  reunionPedirAgenda: "Para aprovechar mejor el tiempo de la reunión, pedimos que nos compartan previamente un listado de los puntos a revisar.",
+};
+
+const PHRASE_BANK_RULES = [
+  "bancoDeFrases contiene redacciones ya validadas por el equipo para escenarios tecnicos frecuentes.",
+  "Si el caso del ticket o del texto del agente coincide con alguno de esos escenarios, usa esa frase como base y adaptala al contexto puntual (nombre, SKU, numero de pedido, etc.) en vez de redactar el concepto desde cero.",
+  "No la copies textual si el escenario no encaja exactamente; el banco es una guia de tono y terminologia, no una plantilla rigida.",
+  "No afirmes una causa como definitiva si el agente la planteo solo como posibilidad o hipotesis. Usa formulas como 'podria deberse a', 'podria estar relacionado con'.",
+  "No uses 'damos por cerrado' ni equivalentes si el texto o el contexto indican que el caso sigue en seguimiento. Usa 'continuaremos monitoreando', 'quedamos atentos', 'en cuanto tengamos novedades les informamos'.",
+];
+
 function buildDraftPolishMessages(ticket: TicketAiContext, draftText: string): ChatMessage[] {
   const saludo = getBuenosAiresGreeting();
   return [
@@ -44,12 +68,14 @@ function buildDraftPolishMessages(ticket: TicketAiContext, draftText: string): C
       content: JSON.stringify({
         rol: SUPPORT_AGENT_ROLE,
         obj: "Convertir el texto escrito por el agente en una respuesta profesional completa para enviar al cliente.",
+        bancoDeFrases: PHRASE_BANK,
         reglas: [
           "Devolve solo el texto pulido, sin explicaciones.",
           "Conserva la idea, intencion y datos escritos por el agente. No cambies el sentido.",
           "Puede ordenar mejor, explicar con mas claridad y agregar conectores profesionales si ayudan a que el cliente entienda.",
           "Si el texto original es muy breve o tipo apunte, desarrollalo en 2 o 3 frases profesionales sin inventar: explica el criterio operativo, el seguimiento y el proximo aviso.",
           "Cuando el agente mencione varios tickets o temas separados, aclarar que cada tema se esta siguiendo en su ticket correspondiente para mantener la trazabilidad.",
+          ...PHRASE_BANK_RULES,
           ARGENTINA_SPANISH_RULE,
           "Corregi ortografia, tildes, puntuacion, mayusculas, cortes de parrafo y errores claros de tipeo.",
           `Debe empezar con este saludo exacto segun hora de Buenos Aires: "${saludo}, {primer nombre del cliente}." No uses el otro saludo.`,
@@ -97,6 +123,7 @@ function buildDraftPolishWithContextMessages(ticket: TicketAiContext, draftText:
       content: JSON.stringify({
         rol: SUPPORT_AGENT_ROLE,
         obj: "Convertir el texto escrito por el agente en una respuesta profesional completa para enviar al cliente, considerando la conversacion previa del ticket para no repetir informacion ni reintroducir el tema como si fuera la primera vez.",
+        bancoDeFrases: PHRASE_BANK,
         reglas: [
           "Devolve solo el texto pulido, sin explicaciones.",
           "Conserva la idea, intencion y datos escritos por el agente. No cambies el sentido.",
@@ -105,6 +132,7 @@ function buildDraftPolishWithContextMessages(ticket: TicketAiContext, draftText:
           "Puede ordenar mejor, explicar con mas claridad y agregar conectores profesionales si ayudan a que el cliente entienda.",
           "Si el texto original es muy breve o tipo apunte, desarrollalo en 2 o 3 frases profesionales sin inventar, usando el contexto del ticket para que tenga sentido en la conversacion.",
           "Cuando el agente mencione varios tickets o temas separados, aclarar que cada tema se esta siguiendo en su ticket correspondiente para mantener la trazabilidad.",
+          ...PHRASE_BANK_RULES,
           ARGENTINA_SPANISH_RULE,
           "Corregi ortografia, tildes, puntuacion, mayusculas, cortes de parrafo y errores claros de tipeo.",
           `Debe empezar con este saludo exacto segun hora de Buenos Aires: "${saludo}, {primer nombre del cliente}." No uses el otro saludo.`,
