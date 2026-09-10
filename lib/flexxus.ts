@@ -407,6 +407,51 @@ function normalizeTicket(item: FlexxusTicketListItem): TicketListItem {
   };
 }
 
+export type TicketAiContext = {
+  id: number;
+  titulo: string;
+  cliente: string;
+  descripcion: string;
+  comentarios: Array<{ tipoAutor: "agente" | "cliente"; contenido: string }>;
+};
+
+// Version liviana para el asistente de redaccion: no trae SLA, categorias ni
+// adjuntos (nunca se usan en el prompt), y solo pide los comentarios cuando
+// el modo los necesita, para no gastar llamadas a Flexxus de mas.
+export async function buildTicketAiContext(input: {
+  token: string;
+  ticketId: number;
+  includeComments: boolean;
+}): Promise<TicketAiContext> {
+  const detailPayload = await requestJson<{ data: FlexxusTicketDetail & FlexxusTicketListItem }>(
+    `${BASE_URL}/tickets/${input.ticketId}`,
+    input.token,
+  );
+  const data = detailPayload.data;
+
+  let comentarios: TicketAiContext["comentarios"] = [];
+  if (input.includeComments) {
+    const commentsPayload = await requestJson<{ data: FlexxusComment[] }>(
+      `${BASE_URL}/ticket-respuestas/${input.ticketId}`,
+      input.token,
+    );
+    comentarios = (commentsPayload.data ?? [])
+      .filter((comment) => !isInternalComment(comment))
+      .map((comment) => ({
+        tipoAutor: comment.usuarioRespuesta?.usuariosTipos?.nombre === "Agente" ? "agente" as const : "cliente" as const,
+        contenido: stripHtml(comment.respuesta),
+      }));
+  }
+
+  return {
+    id: data.id,
+    titulo: data.titulo,
+    cliente: fullName(data.cliente),
+    descripcion: stripHtml(data.descripcion),
+    comentarios,
+  };
+}
+
 export async function buildTicketDetailById(input: { token: string; ticketId: number }): Promise<TicketDetail> {
   const detailPayload = await requestJson<{ data: FlexxusTicketDetail & FlexxusTicketListItem }>(`${BASE_URL}/tickets/${input.ticketId}`, input.token);
   const ticket = normalizeTicket(detailPayload.data);

@@ -1,10 +1,10 @@
 import { callDeepSeek, getDeepSeekApiKey, type ChatMessage } from "@/lib/ai-provider";
-import type { TicketDetail } from "@/lib/flexxus";
+import type { TicketAiContext } from "@/lib/flexxus";
 
 const SUPPORT_AGENT_ROLE = "Sos un agente de soporte Sincro eCommerce de Grow2On/Wuala. Tu especialidad es asistir a clientes sobre sincronización, publicaciones, ventas, stock, pedidos e integraciones de canales.";
 export const ARGENTINA_SPANISH_RULE = "Usá español profesional de Argentina/rioplatense, con ortografía y tildes correctas. Evitá español neutro o peninsular como tienes, puedes, debes, indícanos, indícale, vosotros, os, vale. Preferí fórmulas naturales como tenés, podés, nos podrías indicar, necesitamos que nos compartas o vamos a revisar.";
 
-export type SuggestionMode = "polish-draft";
+export type SuggestionMode = "polish-draft" | "polish-with-context";
 
 function sanitizeText(value: string | null | undefined) {
   return (value ?? "")
@@ -36,7 +36,7 @@ function getBuenosAiresGreeting() {
 
 const SIGNATURE = ["Saludos cordiales.", "Area eCommerce Wuala - Soporte Sincro."];
 
-function buildDraftPolishMessages(ticket: TicketDetail, draftText: string): ChatMessage[] {
+function buildDraftPolishMessages(ticket: TicketAiContext, draftText: string): ChatMessage[] {
   const saludo = getBuenosAiresGreeting();
   return [
     {
@@ -69,9 +69,66 @@ function buildDraftPolishMessages(ticket: TicketDetail, draftText: string): Chat
         text: JSON.stringify({
           textoOriginal: sanitizeText(draftText),
           ticket: {
+            // Solo el nombre del cliente, para el saludo. El titulo no lo usa
+            // ninguna regla en este modo, asi que no se comparte.
+            cliente: getFirstName(ticket.cliente),
+          },
+        }),
+      }],
+    },
+  ];
+}
+
+const CONTEXT_COMMENTS_LIMIT = 3;
+
+function buildDraftPolishWithContextMessages(ticket: TicketAiContext, draftText: string): ChatMessage[] {
+  const saludo = getBuenosAiresGreeting();
+  // ticket.comentarios ya viene filtrado (solo visibles al cliente) desde buildTicketAiContext.
+  const comentariosVisibles = ticket.comentarios
+    .slice(-CONTEXT_COMMENTS_LIMIT)
+    .map((comentario) => ({
+      autor: comentario.tipoAutor,
+      contenido: truncateText(sanitizeText(comentario.contenido), 500),
+    }));
+
+  return [
+    {
+      role: "system",
+      content: JSON.stringify({
+        rol: SUPPORT_AGENT_ROLE,
+        obj: "Convertir el texto escrito por el agente en una respuesta profesional completa para enviar al cliente, considerando la conversacion previa del ticket para no repetir informacion ni reintroducir el tema como si fuera la primera vez.",
+        reglas: [
+          "Devolve solo el texto pulido, sin explicaciones.",
+          "Conserva la idea, intencion y datos escritos por el agente. No cambies el sentido.",
+          "Usa la descripcion y los comentarios previos del ticket solo como contexto para entender de que se viene hablando. No los repitas ni los resumas en la respuesta.",
+          "Si por el contexto esto ya es un intercambio en curso, no reintroduzcas el tema desde cero ni expliques de nuevo cosas que ya se le dijeron al cliente.",
+          "Puede ordenar mejor, explicar con mas claridad y agregar conectores profesionales si ayudan a que el cliente entienda.",
+          "Si el texto original es muy breve o tipo apunte, desarrollalo en 2 o 3 frases profesionales sin inventar, usando el contexto del ticket para que tenga sentido en la conversacion.",
+          "Cuando el agente mencione varios tickets o temas separados, aclarar que cada tema se esta siguiendo en su ticket correspondiente para mantener la trazabilidad.",
+          ARGENTINA_SPANISH_RULE,
+          "Corregi ortografia, tildes, puntuacion, mayusculas, cortes de parrafo y errores claros de tipeo.",
+          `Debe empezar con este saludo exacto segun hora de Buenos Aires: "${saludo}, {primer nombre del cliente}." No uses el otro saludo.`,
+          "Debe incluir una linea en blanco despues del saludo.",
+          "Debe terminar con la firma exacta: Saludos cordiales. / Area eCommerce Wuala - Soporte Sincro.",
+          "Si el texto original ya trae saludo o firma, reemplazalos por el saludo horario correcto y la firma exacta, sin duplicarlos.",
+          "No agregues diagnosticos, causas, promesas, acciones realizadas, horarios ni datos que el agente no escribio o que el ticket no confirme.",
+          "No cambies el sentido de frases prudentes por afirmaciones mas fuertes.",
+        ],
+        firma: SIGNATURE,
+      }),
+    },
+    {
+      role: "user",
+      content: [{
+        type: "text",
+        text: JSON.stringify({
+          textoOriginal: sanitizeText(draftText),
+          ticket: {
             id: ticket.id,
             titulo: truncateText(sanitizeText(ticket.titulo), 120),
             cliente: getFirstName(ticket.cliente),
+            descripcion: truncateText(sanitizeText(ticket.descripcion), 500),
+            comentariosPrevios: comentariosVisibles,
           },
         }),
       }],
@@ -149,18 +206,21 @@ function enforceReplyPolicy(value: string) {
   return ensureSignature(applyRioplatenseFixes(removeDuplicateOpeningGreeting(value)));
 }
 
-export async function suggestTicketReply(input: { ticket: TicketDetail; mode?: SuggestionMode; draftText?: string }) {
+export async function suggestTicketReply(input: { ticket: TicketAiContext; mode?: SuggestionMode; draftText?: string }) {
   const apiKey = await getDeepSeekApiKey();
   if (!apiKey) throw new Error("Falta configurar DEEPSEEK_API_KEY o crear el archivo .deepseek-key.");
 
-  if (input.mode === "polish-draft") {
+  if (input.mode === "polish-draft" || input.mode === "polish-with-context") {
     const draftText = sanitizeText(input.draftText);
     if (!draftText) throw new Error("Falta el texto para pulir.");
+    const messages = input.mode === "polish-with-context"
+      ? buildDraftPolishWithContextMessages(input.ticket, draftText)
+      : buildDraftPolishMessages(input.ticket, draftText);
     const content = await callDeepSeek({
       apiKey,
-      messages: buildDraftPolishMessages(input.ticket, draftText),
+      messages,
       maxTokens: 620,
-      label: "ai-polish-draft",
+      label: input.mode === "polish-with-context" ? "ai-polish-with-context" : "ai-polish-draft",
     });
     return { suggestion: enforceReplyPolicy(content) };
   }

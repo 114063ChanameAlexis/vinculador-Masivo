@@ -23,5 +23,5 @@ a {
 
 body {
   height: 100vh;
-  background: linear-gradient(135deg, #d500ff, #ff9100);
+  background: url('/login-grow2on.svg') center center / cover no-repeat, #E6097E;
 }

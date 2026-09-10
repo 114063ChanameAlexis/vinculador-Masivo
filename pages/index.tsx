@@ -1,4 +1,6 @@
 import Head from 'next/head';
+import Link from 'next/link';
+import { Button } from '@mui/material';
 import FormularioMatcher from '../components/FormularioMatcher';
 
 export default function Home() {
@@ -21,6 +23,15 @@ export default function Home() {
                 />
 
                 <FormularioMatcher />
+
+                <Link href="/grow2on-productos" passHref>
+                    <Button
+                        variant="contained"
+                        sx={{ mt: 3, backgroundColor: '#5d0cff', '&:hover': { backgroundColor: '#4b0ac9' } }}
+                    >
+                        Ver catálogo Grow2on
+                    </Button>
+                </Link>
             </main>
         </>
     );

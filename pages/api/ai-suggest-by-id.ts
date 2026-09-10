@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { requireValidFlexxusSessionToken } from "@/lib/api-auth";
 import { suggestTicketReply } from "@/lib/ai-suggestion";
 import type { SuggestionMode } from "@/lib/ai-suggestion";
-import { buildTicketDetailById } from "@/lib/flexxus";
+import { buildTicketAiContext } from "@/lib/flexxus";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -26,9 +26,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "Falta ticketId valido." });
     }
 
-    const mode: SuggestionMode | undefined = body.mode === "polish-draft" ? "polish-draft" : undefined;
+    const mode: SuggestionMode | undefined =
+      body.mode === "polish-draft" || body.mode === "polish-with-context" ? body.mode : undefined;
 
-    const ticket = await buildTicketDetailById({ token: body.token ?? "", ticketId });
+    const ticket = await buildTicketAiContext({
+      token: body.token ?? "",
+      ticketId,
+      includeComments: mode === "polish-with-context",
+    });
     const result = await suggestTicketReply({
       ticket,
       mode,
