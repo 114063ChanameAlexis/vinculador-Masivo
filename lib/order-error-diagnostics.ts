@@ -29,7 +29,7 @@ export function buildOtherOrderErrorsQuery(input: { serviceId?: string; limit?: 
     filters.push(`| filter serviceId = "${serviceId}"`);
   }
   return [
-    "fields @log, @timestamp, @ingestionTime, level, tag, message, details.database, details.message, details.error, details.orderId, details.productId, serviceId, correlationId, @logStream, @message",
+    "fields @log, @timestamp, level, tag, message, details.database, details.message, details.error.message, details.orderId, details.productId, serviceId, correlationId, @message",
     ...filters,
     "| sort @timestamp desc",
     `| limit ${limit}`,
@@ -64,7 +64,7 @@ function stringifyError(value: unknown): string {
 }
 
 function orderErrorText(row: CloudWatchInsightsRow) {
-  const raw = (row["details.error"] || row["details.message"] || row.message || "Error sin detalle").trim();
+  const raw = (row["details.error.message"] || row["details.message"] || row.message || "Error sin detalle").trim();
   const parsed = parseMaybeJson(raw);
   if (parsed && typeof parsed === "object") {
     const record = parsed as Record<string, unknown>;
