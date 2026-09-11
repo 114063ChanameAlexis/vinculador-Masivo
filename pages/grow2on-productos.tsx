@@ -112,6 +112,26 @@ const Grow2onProductos = () => {
         return productos.filter((p) => p.sku && skusDelCsv.has(p.sku.trim()));
     }, [productos, filtroActivo, skusDelCsv]);
 
+    // SKUs del archivo que no encontraron producto en el catálogo de Grow2on
+    const filasSinCruzar = useMemo(() => {
+        if (!filtroActivo || !columnaSku) return [];
+        const skusEncontrados = new Set(
+            productos
+                .filter((p) => p.sku && skusDelCsv.has(p.sku.trim()))
+                .map((p) => p.sku.trim())
+        );
+        return csvFilas.filter((fila) => {
+            const sku = fila[columnaSku]?.trim();
+            return sku && !skusEncontrados.has(sku);
+        });
+    }, [productos, csvFilas, columnaSku, skusDelCsv, filtroActivo]);
+
+    const exportarSinCruzar = () => {
+        const csv = Papa.unparse(filasSinCruzar);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        saveAs(blob, 'sku-sin-cruzar.csv');
+    };
+
     const exportarParaVincular = () => {
         // Formato esperado por CSVComparador.tsx (interface CSVRow): sku, id, articleId
         // CSVComparador hace match.id.slice(2) al leer "id", así que anteponemos
@@ -154,16 +174,23 @@ const Grow2onProductos = () => {
             </Head>
 
             <Box sx={{ padding: 2, maxWidth: 1000, margin: 'auto' }}>
-                <Typography variant="h5" sx={{ mb: 2 }}>
+                <Typography variant="h5" sx={{ mb: 1 }}>
                     Catálogo Grow2on
                 </Typography>
+                <Typography sx={{ mb: 2, color: '#555' }}>
+                    Traé el catálogo completo de tu tienda en Grow2on, filtralo por un archivo de SKUs y exportá un CSV listo para vincular en la pantalla de Publicaciones.
+                </Typography>
 
+                <Typography variant="overline" sx={{ fontWeight: 700 }}>
+                    Paso 1 · Credenciales
+                </Typography>
                 <Box sx={{ backgroundColor: '#fff', borderRadius: 2, p: 2, mb: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                     <TextField
                         label="Token"
                         variant="outlined"
                         value={token}
                         onChange={(e) => setToken(e.target.value)}
+                        helperText="Por ahora se carga a mano."
                         sx={{ flex: 1, minWidth: 220 }}
                     />
                     <TextField
@@ -184,6 +211,10 @@ const Grow2onProductos = () => {
                 </Box>
 
                 {productos.length > 0 && (
+                    <>
+                    <Typography variant="overline" sx={{ fontWeight: 700 }}>
+                        Paso 2 · (Opcional) filtrar por un archivo de SKUs
+                    </Typography>
                     <Box sx={{ backgroundColor: '#fff', borderRadius: 2, p: 2, mb: 2, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
                         <Button variant="outlined" component="label">
                             Subir CSV o XLSX
@@ -234,7 +265,7 @@ const Grow2onProductos = () => {
                         {filtroActivo && (
                             <>
                                 <Typography sx={{ color: '#555' }}>
-                                    Mostrando {productosFiltrados.length} de {productos.length} (SKUs del CSV: {skusDelCsv.size})
+                                    Mostrando {productosFiltrados.length} de {productos.length} (SKUs del CSV: {skusDelCsv.size}, sin cruzar: {filasSinCruzar.length})
                                 </Typography>
 
                                 <Button
@@ -245,9 +276,19 @@ const Grow2onProductos = () => {
                                 >
                                     Exportar CSV para vincular
                                 </Button>
+
+                                <Button
+                                    variant="contained"
+                                    color="error"
+                                    onClick={exportarSinCruzar}
+                                    disabled={filasSinCruzar.length === 0}
+                                >
+                                    Exportar SKUs sin cruzar ({filasSinCruzar.length})
+                                </Button>
                             </>
                         )}
                     </Box>
+                    </>
                 )}
 
                 {loading && (
@@ -263,6 +304,10 @@ const Grow2onProductos = () => {
                 )}
 
                 {productos.length > 0 && (
+                    <>
+                    <Typography variant="overline" sx={{ fontWeight: 700 }}>
+                        Paso 3 · Revisá el listado y exportá cuando esté filtrado
+                    </Typography>
                     <MaterialReactTable
                         columns={columns}
                         data={productosFiltrados}
@@ -276,6 +321,7 @@ const Grow2onProductos = () => {
                             density: 'compact',
                         }}
                     />
+                    </>
                 )}
             </Box>
         </>

@@ -78,6 +78,7 @@ const FormularioMatcher = () => {
     return (
         <>
         <form onSubmit={handleSubmit} className={styles.formulario}>
+            <p className={styles.pasoLabel}>Paso 1 · Elegí el canal que querés vincular</p>
             <div className={styles.selectorCanales}>
                 {canales.map((canalItem) => (
                     <div
@@ -103,24 +104,28 @@ const FormularioMatcher = () => {
                 </p>
             )}
 
-            {canal &&
-                camposPorCanal[canal]?.map((campo) => (
-                    <input
-                        key={campo.name}
-                        type="text"
-                        name={campo.name}
-                        placeholder={campo.placeholder}
-                        onChange={handleChange}
-                        className={styles.campoInput}
-                    />
-                ))}
+            {canal && (
+                <>
+                    <p className={styles.pasoLabel}>Paso 2 · Completá las credenciales</p>
+                    {camposPorCanal[canal]?.map((campo) => (
+                        <input
+                            key={campo.name}
+                            type="text"
+                            name={campo.name}
+                            placeholder={campo.placeholder}
+                            onChange={handleChange}
+                            className={styles.campoInput}
+                        />
+                    ))}
+                </>
+            )}
 
             <button
                 type="submit"
                 className={styles.botonSubmit}
                 disabled={isSubmitting}
             >
-                {isSubmitting ? 'Procesando...' : 'Obtener publicaciones'}
+                {isSubmitting ? 'Validando y conectando...' : 'Conectar y continuar'}
             </button>
         </form>
 

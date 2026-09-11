@@ -212,6 +212,11 @@ const CSVComparador: React.FC<Props> = ({publicaciones, serviceId, isServiceIdVa
 
     return (
         <Box sx={{mt: 4}}>
+            <Typography sx={{color: '#555', mb: 1}}>
+                {isServiceIdValid
+                    ? 'Subí el CSV del ERP con columnas sku, id y articleId — se va a cruzar contra las publicaciones elegidas.'
+                    : 'Completá el Service ID arriba para poder subir el archivo.'}
+            </Typography>
             <Button variant="contained" component="label" disabled={!isServiceIdValid}>
                 Subir CSV
                 <input type="file" hidden accept=".csv" onChange={handleCSVUpload}/>
@@ -226,6 +231,9 @@ const CSVComparador: React.FC<Props> = ({publicaciones, serviceId, isServiceIdVa
                         ✅ Coincidencias
                     </Typography>
 
+                    <Typography sx={{color: '#555', mb: 1}}>
+                        Estos valores se aplican a <strong>todas</strong> las coincidencias de la tabla de abajo, no fila por fila.
+                    </Typography>
                     <Box sx={{display: 'flex', gap: 2, alignItems: 'center', mb: 2, flexWrap: 'wrap'}}>
                         <TextField
                             label="Safety Stock"

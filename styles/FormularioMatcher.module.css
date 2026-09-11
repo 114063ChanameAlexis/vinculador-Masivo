@@ -40,6 +40,16 @@
     object-fit: contain;
 }
 
+.pasoLabel {
+    color: #1a1a2e;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 0 0 0.5rem;
+    text-shadow: 0 1px 3px rgba(255, 255, 255, 0.5);
+}
+
 .infoCanal {
     color: #1a1a2e;
     font-weight: 600;
